@@ -20,7 +20,7 @@ export const GovernanceTest = () => {
     if (!targetContractId && xassetClient.options.contractId) {
       setTargetContractId(xassetClient.options.contractId);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load current collateral ratio
   const loadCollateralRatio = async () => {
@@ -51,7 +51,8 @@ export const GovernanceTest = () => {
         // Handle Result type if present
         const resultObj = result as { isErr: () => boolean; unwrap: () => number; unwrapErr: () => unknown };
         if (resultObj.isErr()) {
-          setError(`Error: ${resultObj.unwrapErr()}`);
+          const errorValue = resultObj.unwrapErr();
+          setError(`Error: ${errorValue instanceof Error ? errorValue.message : String(errorValue)}`);
         } else {
           const ratio = Number(resultObj.unwrap());
           setCollateralRatio(ratio);
@@ -123,7 +124,8 @@ export const GovernanceTest = () => {
         // Handle Result type if present
         const resultObj = result as { isErr: () => boolean; unwrap: () => number; unwrapErr: () => unknown };
         if (resultObj.isErr()) {
-          setError(`Error: ${resultObj.unwrapErr()}`);
+          const errorValue = resultObj.unwrapErr();
+          setError(`Error: ${errorValue instanceof Error ? errorValue.message : String(errorValue)}`);
         } else {
           const returnedValue = Number(resultObj.unwrap());
           setSuccess(`Successfully updated! Returned value: ${returnedValue} (${returnedValue / 100}%)`);
