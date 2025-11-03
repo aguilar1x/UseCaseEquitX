@@ -20,9 +20,9 @@
 
 ```mermaid
 flowchart LR
-    Admin -- set_asset_price(symbol, price, ts) --> DF[(SEP-40 Data Feed)]
+    Admin -- set_asset_price(symbol, price, ts) --> DF["SEP-40 Data Feed"]
 
-    DF --> S[(Storage: asset → {ts → price})]
+    DF --> S["Storage: asset -> {ts -> price}"]
     
     xAsset -- lastprice_xlm() / lastprice_asset() --> DF
     DF -- (price, decimals, ts) --> xAsset
