@@ -1,6 +1,11 @@
 [workspace]
-members = ["contracts/*"]
 resolver = "2"
+members = [
+  "contracts/*",
+]
+exclude = [
+  "contracts/.config",
+]
 
 [workspace.package]
 authors = ["AhaLabs"]

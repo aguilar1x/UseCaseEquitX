@@ -4,6 +4,7 @@ import ConnectAccount from "./components/ConnectAccount.tsx";
 import { Routes, Route, Outlet, NavLink } from "react-router-dom";
 import Home from "./pages/Home";
 import Debugger from "./pages/Debugger.tsx";
+import Governance from "./pages/Governance.tsx";
 
 const AppLayout: React.FC = () => (
   <main>
@@ -13,6 +14,25 @@ const AppLayout: React.FC = () => (
       contentRight={
         <>
           <nav>
+            <NavLink
+            to="/governance"
+            style={{
+              textDecoration: "none",
+              marginRight: "0.5rem",
+            }}
+            >
+              {({isActive}) => (
+                <Button
+                variant="tertiary"
+                size="md"
+                onClick={() => (window.location.href = "/governance")}
+                disabled={isActive}
+                >
+                  Governance
+                </Button>
+              )}
+
+            </NavLink>
             <NavLink
               to="/debug"
               style={{
@@ -58,6 +78,7 @@ function App() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/governance" element={<Governance />} />
         <Route path="/debug" element={<Debugger />} />
         <Route path="/debug/:contractName" element={<Debugger />} />
       </Route>

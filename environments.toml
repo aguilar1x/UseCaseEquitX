@@ -5,12 +5,10 @@ network-passphrase = "Standalone Network ; February 2017"
 run-locally = true # automatically start the local network container, if not already running
 
 [[development.accounts]]
-name = "me" # Required. Keys for this account will be saved to `./.stellar/identity`
-default = true # Optional. Whether to use this account as the `--source` for commands that need one.
+name = "equitx"
+default = true
 
 [development.contracts]
-fungible_allowlist_example = { client = true, constructor_args = "--admin me --manager me --initial_supply 1000000000000000000000000" }
-nft_enumerable_example = { client = true, constructor_args = "--owner me" }
 
 # Rather than in one list, TOML allows specifying contracts in their own "sections"
 [development.contracts.guess_the_number]
@@ -35,7 +33,7 @@ client = true
 # `stellar contract deploy`
 # Only available in `development` and `testing` environments
 constructor_args = """
---admin me
+--admin equitx
 """
 
 # Calls to the contract to make after it's deployed and initialized with
@@ -58,6 +56,58 @@ after_deploy = """
 reset
 """
 
+[development.contracts.data_feed]
+client = true
+constructor_args = """
+--admin equitx
+--assets '[{"Other":"USDT"},{"Other":"XLM"}]'
+--base '{"Other":"USDT"}'
+--decimals 14
+--resolution 300
+"""
+after_deploy = """
+set_asset_price --price 10000000000000 --asset '{"Other":"XLM"}' --timestamp "$(date +%s)"
+set_asset_price --price 100000000000000 --asset '{"Other":"USDT"}' --timestamp "$(date +%s)"
+"""
+
+[development.contracts.governance]
+client = true
+constructor_args = """
+--admin equitx
+"""
+
+[development.contracts.xasset]
+client = true
+constructor_args = """
+--admin equitx
+--xlm_sac "$(stellar contract id asset --asset native)"
+--xlm_contract "$(stellar contract alias show data_feed --network-passphrase "Standalone Network ; February 2017")"
+--asset_contract "$(stellar contract alias show data_feed --network-passphrase "Standalone Network ; February 2017")"
+--pegged_asset USDT
+--min_collat_ratio 11000
+--name "United States Dollar xAsset"
+--symbol xUSD
+--decimals 7
+--annual_interest_rate 100
+"""
+after_deploy = """
+STELLAR_ACCOUNT=alice open_cdp --lender alice --collateral 1700000000 --asset-lent 100000000
+STELLAR_ACCOUNT=bob open_cdp --lender bob --collateral 1300000000 --asset-lent 100000000
+set_min_collat_ratio --to 15000
+"""
+
+[development.contracts.orchestrator]
+client = true
+constructor_args = """
+--admin equitx
+--xlm_sac "$(stellar contract id asset --asset native)"
+--xlm_contract "$(stellar contract alias show data_feed --network-passphrase "Standalone Network ; February 2017")"
+--xasset_wasm_hash "$(stellar contract fetch --id $(stellar contract alias show xasset --network-passphrase "Standalone Network ; February 2017") | openssl sha256 | awk '{print $2}')"
+"""
+after_deploy = """
+set_existing_asset_contract --asset_symbol xUSDT --asset_contract $(stellar contract alias show xasset --network-passphrase "Standalone Network ; February 2017")
+"""
+
 # Coming Soon: Specify live contracts to bind & import in this project using the given name.
 # During initialization, these contracts will also be "spooned" into the development network,
 # meaning that their data will match the live network at the given sequence number.
@@ -66,32 +116,59 @@ reset
 # address = "C..."
 # at-ledger-sequence = 50153603
 
+### Testing environment configuration
+[testing]
+accounts = ["equitx"]
+
+[testing.network]
+rpc-url = "http://localhost:8000/rpc"
+network-passphrase = "Standalone Network ; February 2017"
+
+[testing.contracts.data_feed]
+client = true
+
+[testing.contracts.xasset]
+client = true
+
 ### Staging environment configuration
+[staging]
+accounts = ["equitx"]
+
 [staging.network]
 rpc-url = "https://soroban-testnet.stellar.org"
 network-passphrase = "Test SDF Network ; September 2015"
 
-[[staging.accounts]]
-name = "testnet-user"
-default = true
-
 [staging.contracts]
-# soroban-atomic-swap-contract = { id = "C123..." }
-# soroban-auth-contract = { id = "C234..." }
-# soroban-errors-contract = { id = "C345..." }
-# soroban-hello-world-contract = { id = "C456..." }
-# soroban-increment-contract = { id = "C567..." }
-# soroban-token-contract = { id = "C678..." }
-# eurc = { id = "C789..." }
+
+# [staging.contracts.guess_the_number]
+# client = true
+# constructor_args = """
+# --admin equitx
+# """
+
+[staging.contracts.data_feed]
+id = "CCNKCM5SZ6Z6EPYEHKUOEZ235K4P4MDYEA2RGEWJ5CEPHGBADVN63BU3"
+client = true
+
+[staging.contracts.governance]
+id = "CDVFJ5M3T77C4BRWFXAZSPVV63SEHXGQDHW5Q6O5RSQ5FQL33JMXAH57"
+client = true
+
+[staging.contracts.xasset]
+id = "CDUOMJ5ODPDA7B2OTVB2MRT6QNIGSDMCQDQGEHKVKMWS62QYAUXNCY7C"
+client = true
+
+[staging.contracts.orchestrator]
+id = ""
+client = false
 
 ### Production environment configuration
-[production.network]
-rpc-url = "https://our-custom-rpc-provider.cool"
-network-passphrase = "Public Global Stellar Network ; September 2015"
+[production]
+accounts = ["equitxmainnet"]
 
-[[production.accounts]]
-name = "official-team-account"
-default = true
+[production.network]
+rpc-url = "https://rpc.lightsail.network/"
+network-passphrase = "Public Global Stellar Network ; September 2015"
 
 [production.contracts]
 # soroban-atomic-swap-contract = { id = "C987..." }

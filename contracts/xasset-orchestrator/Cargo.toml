@@ -1,10 +1,11 @@
 [package]
-name = "fungible-allowlist-example"
-edition.workspace = true
-license.workspace = true
-repository.workspace = true
+name = "orchestrator"
+version = "0.0.0"
+authors = ["The Aha Company <help@theaha.co>"]
+license = "Apache-2.0"
 publish = false
-version.workspace = true
+edition.workspace = true
+repository.workspace = true
 
 [lib]
 crate-type = ["cdylib"]
@@ -12,9 +13,11 @@ doctest = false
 
 [dependencies]
 soroban-sdk = { workspace = true }
-stellar-access = { workspace = true }
-stellar-macros = { workspace = true }
-stellar-tokens = { workspace = true }
+xasset = { path = "../xasset" }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
+
+[package.metadata.stellar]
+contract = true
+cargo_inherit = true

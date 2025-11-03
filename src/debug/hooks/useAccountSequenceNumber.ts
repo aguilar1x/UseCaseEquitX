@@ -29,24 +29,47 @@ export const useAccountSequenceNumber = ({
       }
 
       try {
+        // Note: The browser console may show a 404 error when the account doesn't exist.
+        // This is normal and expected behavior - the error is handled properly below.
         const response = await fetch(
           `${horizonUrl}/accounts/${sourceAccount}`,
           { headers },
         );
+
+        // Handle 404 specifically - account doesn't exist
+        if (!response.ok && response.status === 404) {
+          // Don't parse JSON if it's a 404, just throw a clear error
+          // The 404 in console is expected and handled gracefully
+          const errorMessage = "Account not found. Make sure the correct network is selected and the account is funded/created.";
+          const error = new Error(errorMessage);
+          (error as Error & { status?: number }).status = 404;
+          throw error;
+        }
+
+        if (!response.ok) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const responseJson = await response.json().catch(() => ({}));
+          throw new Error(
+            responseJson?.extras?.reason ||
+            responseJson?.detail ||
+            `HTTP ${response.status}: ${response.statusText}`
+          );
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const responseJson = await response.json();
 
         if (responseJson?.status === 0) {
-          throw `Unable to reach server at ${horizonUrl}.`;
+          throw new Error(`Unable to reach server at ${horizonUrl}.`);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         if (responseJson?.status?.toString()?.startsWith("4")) {
           if (responseJson?.title === "Resource Missing") {
-            throw "Account not found. Make sure the correct network is selected and the account is funded/created.";
+            throw new Error("Account not found. Make sure the correct network is selected and the account is funded/created.");
           }
 
-          throw (
+          throw new Error(
             responseJson?.extras?.reason ||
             responseJson?.detail ||
             "Something went wrong when fetching the transaction sequence number. Please try again."
@@ -55,10 +78,15 @@ export const useAccountSequenceNumber = ({
 
         return (BigInt(responseJson.sequence) + BigInt(1)).toString();
       } catch (e: unknown) {
-        throw `${e as Error}. Check network configuration.`;
+        if (e instanceof Error) {
+          throw e;
+        }
+        throw new Error(`${String(e)}. Check network configuration.`);
       }
     },
     enabled,
+    retry: false, // Don't retry if account doesn't exist
+    throwOnError: false, // Don't throw errors immediately, let React Query handle them
   });
 
   return query;

@@ -1,0 +1,24 @@
+[package]
+name = "xasset"
+description = "Fungible Token that wraps another asset, creates a stability pool for it, and allows creating Collateralized Debt Positions (CDPs) against it."
+version = "1.0.0"
+authors = ["The Aha Company <help@theaha.co>"]
+license = "Apache-2.0"
+edition.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+data-feed = { path = "../data-feed" }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+
+[package.metadata.stellar]
+contract = true
+cargo_inherit = true
